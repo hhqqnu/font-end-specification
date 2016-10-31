@@ -1,0 +1,20 @@
+{
+  "name": "font-end-specification",
+  "version": "1.0.0",
+  "description": "前端代码规范 及 最佳实践",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hhqqnu/font-end-specification.git"
+  },
+  "keywords": [],
+  "author": "tom",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hhqqnu/font-end-specification/issues"
+  },
+  "homepage": "https://github.com/hhqqnu/font-end-specification#readme"
+}
