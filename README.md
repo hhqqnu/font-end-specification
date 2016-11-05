@@ -143,7 +143,6 @@
 #### 严格的嵌套
 - 尽可能以最严格的xhtml strict标准来嵌套，比如内联元素不能包含块级元素等等。
 - 正确闭合标签且必须闭合。
-
 #### 严格的属性
 - 属性和值全部小写，每个属性都必须有一个值，每个值必须加双引号。
 - 没有值的属性必须使用自己的名称做为值（checked、disabled、readonly、selected等等）。
@@ -430,9 +429,405 @@ CSS选择器组合，可以一次定义多个选择器，节省很多字节和�
 
 ## JS规范
 
-### 文件命名规范
+### 分类方法
+#### JS文件的分类及引用顺序
+在项目中JS将会存在app.min.js、“config.js”、"功能页面模块JS".
+1、app.min.js包含jQuery.1.11、knockoutJS、knockoutJS-Mapping、knockoutJS自定义扩展方法及常用的公共方法。
+2、config.js包含项目中常用的常量及配置信息。
+3、功能页面模块JS是不同页面模块进行划分。
+config.js示例：
+
+``` javascript
+/**
+ * Created with WebStorm.
+ * User: tom
+ * Date: 2015-2-12
+ * Time: 13:43
+ */
+!(function (app) {
+	app.global.debug = 0;
+	app.global.loginUri = 'login.html';
+	app.global.indexUri = "index.html";
+	app.global.remoteBaseUri = '../MainHandler.ashx/';
+	app.global.rootPath = "/";
+	app.global.isAutoLogin="1";
+	app.global.beginWorkTime = 9;//开始工作时间
+	app.global.endWorkTime = 17;//结束工作时间
+})(window.app);
+
+```
+
+JS页面引用顺序
+
+``` html
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"/>
+	<title></title>
+	<link rel="stylesheet" href="../css/src/skin.css"/>
+	<!--[if lt IE 8]>
+	<script src="../js/json2.min.js" type="text/javascript"></script>
+	<![endif]-->
+</head>
+<body style="overflow: hidden;background-color: #F1F1F1;">
+<div>
+	<img src="../images/login_bj.png" width="100%"/>
+</div>
+<div class="bj_right_bottom">
+	<img src="../images/login_right_bottom.png">
+</div>
+<div class="logon"></div>
+<div class="logoFormBj">
+	<table>
+		<tr>
+			<td class="td1">用户名</td>
+			<td>
+				<input type="text" placeholder="邮件地址" id="userName"/>
+			</td>
+		</tr>
+		<tr>
+			<td class="td1">密　码</td>
+			<td>
+				<input type="password" placeholder="邮箱密码" id="password"/>
+			</td>
+		</tr>
+		<tr>
+			<td class="td1">验证码</td>
+			<td>
+				<div class="loginVerifyCode">
+					<div class="fL">
+						<label for="txtVCode"></label>
+						<input id="txtVCode" name="vCode" type="text" class="txtVCode" placeholder="验证码" >
+					</div>
+					<div class="fL">
+						<img src="/MainHandler.ashx/UserAction/CreateVerifyCode?actionParam=1&multiParam=1" class="loginVerifyCodeImg" id="loginVerifyCodeImg"/></div>
+					<div class="fL">
+						<span class="loginVerifyCodeNew" id="loginVerifyCodeNew">换一张</span>
+					</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>
+				<button class="loginBtn" id="loginMainFooter">登录</button>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>
+				<div id="loginMainError" class="font14 loginMainError"></div>
+			</td>
+		</tr>
+	</table>
+</div>
+</body>
+<script src="../js/app/app.min.js"></script>
+<script src="../js/app/config.js"></script>
+<script src="../js/app/src/login.js"></script>
+</html>
+```
+
+> 注：由于PC项目要兼容低版本的IE，在页面head中引用要添加json2.min.js以处理json数据处理。
+> 数据绑定则由knockoutJS进行双向绑定。
 
 ### 命名规范
+#### 全局命名空间污染
+全局命名使代码会轻易被其它全局命名空间里的代码所修改（i.e. 第三方库，window 引用，被覆盖的未定义的关键字等等）。
 
+不推荐：
+
+``` javascript
+var x = 10,
+    y = 10;
+console.log(window.x + ' ' + window.y);
+```
+推荐：
+
+``` javascript
+!function(win,log){
+    'use strict';
+    var x = 10,
+        y = 10;
+   log(x + ' ' + y);
+}(window,window.console);
+```
+
+#### 使用严格模式
+由于javascript是弱语言，不定义变量或不使用var进行定义时同样会可以使用。
+使用严格模式可以通过报错信息来帮助你定位错误出处。
+
+``` javascript
+!function(){
+    'use strict';
+}();
+```
+
+#### 命名
+代码编写统一使用小骆峰进行定义变量及方法。
+骆驼式命名法就是当变量名或函式名是由一个或多个单词连结在一起，而构成的唯一识别字时，第一个单词以小写字母开始；第二个单词的首字母大写或每一个单词的首字母都采用大写字母，例如：myFirstName、myLastName。
+
+注：如果javascript使用了OOP方法进行编写，类名则每个单词的第一个字母大字，例如:
+
+``` javascript
+function People(){}
+People.prototype = {};
+```
 ### 最佳实践
+页面模块功能以登录页JS为例：
+
+``` javascript
+/**
+ * User: tom
+ * Date: 2015-3-04
+ * Time: 10:53
+ */
+!function ($, app, win) {
+	var $win = $(win), $doc = $(document);
+	//定义当前页面对象
+	var Page = function () {
+		this.onReady = function (seetings) {
+			this.opts = $.extend({}, Page.defaults, seetings || {});
+			this.pageInit();
+			return this;
+		}
+	};
+	Page.defaults = {}; //页面对象默认参数
+	Page.prototype = {
+		pageInit: function () { //页面对象初始化
+			var _ = this, opts = _.opts;
+			opts.userName.focus().on('keypress', function () {
+				setTimeout(function () {
+					_.initBtnLogin();
+				}, 30);
+			});
+			opts.password.on('keypress', function () {
+				setTimeout(function () {
+					_.initBtnLogin();
+				}, 30);
+			});
+
+			opts.loginVerifyCodeNew.on('click', function () {
+				var oldSrc = opts.loginVerifyCodeImg.attr('src'),
+					newSrc;
+				if (oldSrc.indexOf('?') === -1) {
+					newSrc = oldSrc + '?';
+				} else {
+					newSrc = oldSrc + '&';
+				}
+				newSrc += 'newRandom=' + new Date().getTime();
+				opts.loginVerifyCodeImg.attr('src', newSrc);
+			});
+
+			$(document).on('keydown.t', function (event) {
+				event = event || win.event;
+				if (event.keyCode == 13) {
+					_.bindLoginEvent();
+				}
+			});
+
+		},
+		initBtnLogin: function () { //页面对象通过原型链进行定义方法
+			var _ = this, opts = _.opts;
+			if (opts.userName.val() && opts.password.val()) {
+				opts.loginMainFooter.off('click.t')
+					.on('click.t', function () {
+						_.bindLoginEvent();
+					});
+			} else {
+				opts.loginMainFooter.removeClass('loginMainFooterHover').off('click.t');
+			}
+		},
+		bindLoginEvent: function () {
+			var _ = this, opts = _.opts, params = {
+				verifyCode:opts.txtVCode.val(),
+				userName: opts.userName.val(),
+				password: opts.password.val()
+			};
+
+			//登录的URL 及参数设定
+			this.server.login.post(params, function (json) {
+				app.cookie('userInfo', JSON.stringify(json.data), {expires: 7, path: app.global.rootPath});
+
+				window.location.assign(app.global.indexUri);
+			});
+		}
+	};
+	$.extend(Page.prototype, app.basepage || {}, true); //页面对象进行继承。
+	//实例化页面对象
+	var page = new Page();
+	//为实例化后的页面对象添加AJAX请求对象。
+	//app.global.debug用于判断当前状态是否处于debug状态。
+	page.server = page.server(app.global.debug ? {
+		login: '../data/login.json'
+	} : {
+		login: 'UserAction/ValidateUserCredential?actionParam=1&multiParam=1'
+	});
+	//重新定义AJAX请求出现的样式。
+	page.server.onError = function (error) {
+		page.opts.loginMainError.html("登录失败：" + error);
+	};
+	//初始页面上所用到的DOM对象，以减少对DOM操作。
+	page.onReady({
+		userName: $('#userName'),
+		password: $('#password'),
+		txtVCode: $('#txtVCode'),
+		loginVerifyCodeImg: $('#loginVerifyCodeImg'),
+		loginMainFooter: $('#loginMainFooter'),
+		loginMainError: $('#loginMainError'),
+		formSignIn: $('#formSignIn'),
+		loginVerifyCodeNew: $('#loginVerifyCodeNew')
+	});
+}(jQuery, window.app, window);
+
+```
+
+knockoutJS绑定：
+
+html中绑定模板：
+
+``` html
+<div class="c_r_calendarMeeting">
+			<div class="c_r_calendarMeetingDate" data-bind="text:$root.meetingList.curDay"></div>
+			<div class="c_r_calendarMeetingContent"
+			     data-bind="template: {name: 'meetingListTemplate', foreach: meetingList.dataSource}"></div>
+		</div>
+<script id="meetingListTemplate" type="text/html">
+			<div class="c_r_calendarMeetingInfoDiv" data-bind="css:{'c_r_calendarMeetingInfoSelect':selected}">
+				<div class="c_r_calendarMeetingInfo"
+				     data-bind="click:$root.meetingList.showCrcMeetingInfoOperation,
+				                css:{'c_r_calendarMeetingInfo1':IsFromMe,'c_r_calendarMeetingInfo2':!IsFromMe()}">
+					<div class="monthViewEventTime" data-bind="text:StartTime"></div>
+					<div class="monthViewEventContent">
+						<div class="monthViewEventContentSubject" data-bind="text:Subject"></div>
+						<div class="c_r_calendarMeetingInfoTitle">
+							<span data-bind="text:Duration"></span>小时 <span
+								data-bind="text:Location"></span>
+						</div>
+						<div class="c_r_calendarMeetingInfoEditor" data-bind="visible:selected">
+							<!-- ko if:!IsFromMe()-->
+							<span data-bind="visible:!IsFromMe(),click:$root.meetingList.lookAtMeeting">查看</span>
+							<!-- /ko -->
+							<!-- ko if:IsFromMe()-->
+							<span data-bind="visible:IsFromMe,click:$root.meetingList.editorMeeting">编辑</span>
+							<span data-bind="visible:IsFromMe,click:$root.meetingList.cancelMeeting">取消</span>
+							<!-- /ko -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</script>
+```
+
+监视及绑定数据。
+
+``` javascript
+	page.meetingList = {
+		dataSource: ko.mapping.fromJS([]),//定义数据源
+		curDay: ko.observable(),
+		upData: function (day, s, e) {
+			if (page.upMeetingListAjax) {
+				page.upMeetingListAjax.abort();
+			}
+			page.meetingList.curDay(app.formatDate(app.parseDate(day), "yyyy年MM月dd日"));
+
+			page.upMeetingListAjax = page.server.getDetailCalendarViewByDay.post({
+				startTime: s,
+				endTime: e
+			}, function (json) {
+				ko.mapping.fromJS(page.meetingList.addDataP(json.data), page.meetingList.dataSource);
+			});
+		},
+		addDataP: function (data) {
+			var result = [];
+			for (var i = 0, l = data.length; i < l; i++) {
+				var curData = data[i];
+				curData.selected = 0;
+				result.push(curData);
+			}
+			return result;
+		},
+		clearMeetingInfoSelect: function () { //清理会议的选择
+			var data = page.meetingList.dataSource();
+			for (var i = 0, l = data.length; i < l; i++) {
+				data[i].selected(0);
+			}
+		},
+		showCrcMeetingInfoOperation: function (item) {
+			page.meetingList.clearMeetingInfoSelect();
+			item.selected(1);
+		},
+		lookAtMeeting: function (item) {
+			page.editorDialog({
+				data: ko.mapping.toJS(item),
+				showMask: 1,
+				uri: 'editor.html?action=iView&d=' + page.ccMy.opts.sDate,
+				isHideBtnOk: '1',
+				okAfterClose: 1,
+				afterEvent: function () {
+					page.hideMask();
+				}
+			});
+
+		},
+		editorMeeting: function (item) {
+			//TODO：编辑会议
+			page.editorDialog({
+				data: ko.mapping.toJS(item),
+				showMask: 1,
+				uri: 'editor.html?action=iEditor&d=' + page.ccMy.opts.sDate,
+				okAfterClose: 1,
+				method: 'save',
+				afterEvent: function () {
+					page.hideMask();
+				},
+				okAfterEvent: function () {
+					//更新当前日历视图
+					page.ccMyTdClick(page.ccMy.opts.sDate);
+				}
+			});
+		},
+		cancelMeeting: function (item) {
+			if (confirm('是否确认取消此会议')) {
+				page.meetingList.cancelMeetingRequest(item.UniqueId(), function () {
+					page.meetingList.dataSource.remove(item);
+					//根据当前日历视图进行更新相对应的日历视图数据
+					page.meetingList.singleUpCalendarData();
+				});
+			}
+		},
+		cancelMeetingRequest: function (itemId, callback) {
+			page.server.cancelMeetingWithNotification.post({uniqueId: itemId}, function (json) {
+				if ($.isFunction(callback))callback();
+			});
+		},
+		singleUpCalendarData: function () {
+			switch (page.ccMy.opts.mode) {
+				case 'day':
+					page.bindDayMeeting(app.formatDate(page.ccMy.opts.sDate), page.ccMy);
+					break;
+				case 'week':
+					page.bindWeekMeeting(page.ccMy.getWeekRange(page.ccMy.opts.sDate), page.ccMy);
+					break;
+				case 'month':
+					//page.bindMonthMeeting(page.ccMy.curMonthTds, page.ccMy);
+					//更新当前天的会议列表
+					var curDate = app.formatDate(page.ccMy.opts.sDate),
+						sTime = curDate + ' 00:00:00',
+						eTime = curDate + ' 23:59:59';
+					page.getMonthMeeting(sTime, eTime, 3, function (data) {
+						$.each(data, function (j, k) {
+							data[j].eventColor = k.IsFromMe ? '#0072C6' : '#80C9FF';
+						});
+						page.ccMy.setMonthDayEvent(data, page.monthTemplete);
+					});
+					break;
+			}
+			//重新获取最近一次会议
+			page.latestMeeting.getLatestMeetingItem();
+		}
+	}
+```
 
