@@ -569,7 +569,7 @@ console.log(window.x + ' ' + window.y);
 代码编写统一使用小骆峰进行定义变量及方法。
 骆驼式命名法就是当变量名或函式名是由一个或多个单词连结在一起，而构成的唯一识别字时，第一个单词以小写字母开始；第二个单词的首字母大写或每一个单词的首字母都采用大写字母，例如：myFirstName、myLastName。
 
-注：如果javascript使用了OOP方法进行编写，类名则每个单词的第一个字母大字，例如:
+注：如果javascript使用了OOP方法进行编写，类名则每个单词的第一个字母大字(建议使用OOP的思想进行编写javascript)，例如:
 
 ``` javascript
 function People(){}
